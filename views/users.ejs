@@ -1,75 +1,183 @@
 <%- include('./inc/header.ejs'); %>
 
-    <div class="manageUser-container">
-      <div id="title">
-        <h2>Manage Users</h2>
-      </div>
+  <div class="manageUser-container">
+    <div id="title">
+      <h2>Manage Users</h2>
+    </div>
 
-      <div class="new-message-container new-user">
-        <a href="#" onclick="openModal()">+</a>
-      </div>
+    <div class="new-message-container new-user">
+      <a href="#" onclick="openModal()">+</a>
+    </div>
 
-      <div id="users-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Manage</th>
-            </tr>
-          </thead>
-          <tbody id="users-table">
-            <tr id="">
+    <div id="users-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Manage</th>
+          </tr>
+        </thead>
+        <tbody id="users-table">
+          <% users.forEach((user)=>{ %>
+            <tr id="<%= user._id %>">
               <td class="name">
-                <img src="./images/user1.png" />
-                <span>User 1</span>
+                <% if(user.avatar){ %>
+                  <img src="uploads/avatars/<%= user.avatar %>" />
+                  <% } else { %>
+                    <img src="./images/user1.png" />
+                    <% } %>
+                      <span>
+                        <%= user.name %>
+                      </span>
               </td>
-              <td>email@email.com</td>
+              <td>
+                <%= user.email %>
+              </td>
               <td class="manage">
-                <img src="./images/trash.png" alt="Delete" />
+                <img src="./images/trash.png" onclick="deleteUser('<%= user._id %>')" alt=" Delete" />
               </td>
             </tr>
-          </tbody>
-        </table>
-      </div>
+            <% }) %>
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    <div class="modal-wrapper" id="add-user-modal">
-      <div class="modal">
-        <a href="#" onclick="closeModal()" class="modal-close">+</a>
-        <div class="modal-title">
-          <h2>Create New User</h2>
-        </div>
-        <div class="modal-body">
-          <form id="add-user-form">
-            <input type="text" placeholder="enter name" name="name" />
-            <p class="error show">This is error</p>
-            <input type="text" placeholder="enter email" name="email" />
-            <input type="text" placeholder="enter mobile" name="mobile" />
-            <input
-              type="password"
-              placeholder="enter password"
-              name="password"
-            />
-            <input
-              type="password"
-              placeholder="Retype Password"
-              name="repassword"
-            />
-            <input type="file" name="avatar" />
-            <input type="submit" value="Submit" />
-          </form>
-        </div>
+  <div class="modal-wrapper" id="add-user-modal">
+    <div class="modal">
+      <a href="#" onclick="closeModal()" class="modal-close">+</a>
+      <div class="modal-title">
+        <h2>Create New User</h2>
+      </div>
+      <div class="modal-body">
+        <form id="add-user-form" enctype="multipart/form-data">
+          <input type="text" placeholder="enter name" name="name" />
+          <p class="error name-error"></p>
+
+          <input type="text" placeholder="enter email" name="email" />
+          <p class="error email-error"></p>
+
+          <input type="text" placeholder="enter mobile" name="mobile" />
+          <p class="error mobile-error"></p>
+
+          <input type="password" placeholder="enter password" name="password" />
+          <p class="error password-error"></p>
+
+          <input type="password" placeholder="Retype Password" name="repassword" />
+          <p class="error repassword-error"></p>
+
+          <input type="file" name="avatar" />
+          <p class="error avatar-error"></p>
+
+          <p class="error common-error"></p>
+
+          <input type="submit" value="Submit" />
+        </form>
       </div>
     </div>
-    <script>
-      const modal = document.querySelector("#add-user-modal");
-      function closeModal() {
-        modal.style.display = "none";
+  </div>
+  <script>
+    const modal = document.querySelector("#add-user-modal");
+    const form = document.querySelector("#add-user-form");
+
+    // success toast
+    const successToast = Toastify({
+      text: "User was added successfully! Reloading the list...",
+      duration: 1000,
+    });
+    function closeModal() {
+      modal.style.display = "none";
+    }
+    function openModal() {
+      modal.style.display = "block";
+    }
+
+
+    // form submit handler
+    form.onsubmit = async function (event) {
+      event.preventDefault();
+
+      // clear errors first
+      const errorPlaceholders = document.querySelectorAll("p.error");
+      for (let i = 0; i < errorPlaceholders.length; i++) {
+        errorPlaceholders[i].style.display = "none";
       }
-      function openModal() {
-        modal.style.display = "block";
+
+      const inputErrors = document.querySelectorAll("input.error");
+      if (inputErrors.length > 0) {
+        for (let j = 0; j < inputErrors.length; j++) {
+          inputErrors[j].classList.remove("error");
+        }
       }
-    </script>
+
+      // prepare the form data
+      const formData = new FormData(form);
+      // send the request to server
+      let response = await fetch("/users", {
+        method: "POST",
+        body: formData,
+      });
+
+      // json data
+      let result = await response.json();
+
+      if (result.errors) {
+        Object.keys(result.errors).forEach((fieldName) => {
+          // add error class to all input
+          form[fieldName].classList.add('error');
+
+          // set all error placeholder
+          const errorPlaceholder = document.querySelector(`.${fieldName}-error`);
+          errorPlaceholder.textContent = result.errors[fieldName].msg;
+
+          // make all placeholder visable
+          errorPlaceholder.style.display = 'block';
+        });
+      }
+      else {
+        // sucess
+        successToast.showToast();
+        closeModal();
+        document.querySelector('p.error').style.display = 'none';
+
+        // reload the page
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      }
+    };
+
+
+    // delete user
+    const deleteToast = Toastify({
+      text: 'user was deleted successfully',
+      duration: 3000
+    })
+
+    const deleteErrorToast = Toastify({
+      text: 'could not delete the user',
+      duration: 3000
+    })
+
+
+    async function deleteUser(userId) {
+      let user = await fetch(`/users/${userId}`, {
+        method: 'DELETE'
+      })
+
+      let response = await user.json();
+      if (response.errors) {
+        deleteErrorToast.showToast();
+      }
+      else {
+        deleteToast.showToast();
+        document.getElementById(userId).remove();
+      }
+    }
+
+
+  </script>
   </body>
-</html>
+
+  </html>

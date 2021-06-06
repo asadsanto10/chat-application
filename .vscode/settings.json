@@ -7,9 +7,12 @@
     "editor.defaultFormatter": null
   },
   // "[html]": {
-  //   "editor.formatOnSave": false,
+  //   "editor.formatOnSave": true,
   //   "editor.defaultFormatter": null
   // },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true,
     "source.organizeImports": true

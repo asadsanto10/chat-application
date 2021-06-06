@@ -1,11 +1,11 @@
-const uploader = require('../utilitis/singleUploader');
+const uploader = require('../../utilitis/singleUploader');
 
-const avaterUpload = (req, res, next) => {
+function avatarUpload(req, res, next) {
   const upload = uploader(
     'avatars',
     ['image/jpeg', 'image/jpg', 'image/png'],
-    1000,
-    'only .jpg, jpeg or .png formate allowd'
+    1000000,
+    'Only .jpg, jpeg or .png format allowed!'
   );
 
   // call the middleware function
@@ -13,7 +13,7 @@ const avaterUpload = (req, res, next) => {
     if (err) {
       res.status(500).json({
         errors: {
-          avater: {
+          avatar: {
             msg: err.message,
           },
         },
@@ -22,6 +22,6 @@ const avaterUpload = (req, res, next) => {
       next();
     }
   });
-};
+}
 
-module.exports = avaterUpload;
+module.exports = avatarUpload;
