@@ -2,7 +2,7 @@ const express = require('express');
 
 // internal imports
 const { getUsers, addUSer, removeUser } = require('../controller/usersController');
-const checkLogin = require('../controller/checkLogin');
+const { checkLogin } = require('../middlewares/checkLogin');
 const avatarUpload = require('../middlewares/users/avatarUpload');
 const htmlResponse = require('../middlewares/htmlResponse');
 const { userValidator, addUserValidatorHandelar } = require('../middlewares/users/userValidator');

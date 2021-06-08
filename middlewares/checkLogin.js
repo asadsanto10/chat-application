@@ -10,7 +10,7 @@ const checkLogin = (req, res, next) => {
       req.user = decoded;
 
       //   pass user info to response locals
-      if (req.locals.html) {
+      if (res.locals.html) {
         res.locals.loggedInUser = decoded;
       }
       next();
@@ -34,4 +34,14 @@ const checkLogin = (req, res, next) => {
   }
 };
 
-module.exports = checkLogin;
+// redirecct logged in users
+const redirectLoggedInUser = (req, res, next) => {
+  const cookies = Object.keys(req.signedCookies).length > 0 ? req.signedCookies : null;
+  if (!cookies) {
+    next();
+  } else {
+    res.redirect('/inbox');
+  }
+};
+
+module.exports = { checkLogin, redirectLoggedInUser };
